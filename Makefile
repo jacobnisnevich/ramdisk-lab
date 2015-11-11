@@ -53,7 +53,7 @@ tarball: realclean
 	$(V)mkdir $(DISTDIR)
 	$(V)tar cf - `ls | grep -v '^$(DISTDIR)\|.*\.qvm\|.*\.tar\.gz\|^\.svn\|^CVS\|.*\.iso\|^binary$$\|^cache$$\|^chroot$$\|^config$$\|^\.stage$$'` | (cd $(DISTDIR) && tar xf -)
 	$(V)/bin/rm -rf `find $(DISTDIR) -name CVS -o -name .svn -print`
-	$(V)date > $(DISTDIR)/tarballstamp
+	#$(V)date > $(DISTDIR)/tarballstamp
 	$(V)tar cf $(DISTDIR).tar $(DISTDIR)
 	$(V)gzip $(DISTDIR).tar
 	$(V)/bin/rm -rf $(DISTDIR)
