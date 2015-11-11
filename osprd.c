@@ -242,8 +242,8 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		// be protected by a spinlock; which ones?)
 
 		// Your code here (instead of the next two lines).
-		unsigned local_ticket = d->ticket_head;
 		osp_spin_lock(&d->mutex);
+		unsigned local_ticket = d->ticket_head;
 		d->ticket_head++;
 		osp_spin_unlock(&d->mutex);
 
@@ -301,8 +301,40 @@ int osprd_ioctl(struct inode *inode, struct file *filp,
 		// Otherwise, if we can grant the lock request, return 0.
 
 		// Your code here (instead of the next two lines).
-		eprintk("Attempting to try acquire\n");
-		r = -ENOTTY;
+
+		if (filp_writable)
+		{
+			// try to acquire a write lock
+			if (!d->n_write_locks && !d->n_read_locks)
+			{
+				// we can give the lock
+				osp_spin_lock(&(d->mutex));
+				d->n_write_locks++;
+				filp->f_flags |= F_OSPRD_LOCKED;
+				d->ticket_tail++;
+				osp_spin_unlock(&d->mutex);
+			}
+			else
+			{
+				r = -EBUSY;
+			}
+		}
+		else
+		{
+			// try to acquire a read lock
+			if (!d->n_write_locks)
+			{
+				osp_spin_lock(&(d->mutex));
+				d->n_read_locks++;
+				filp->f_flags |= F_OSPRD_LOCKED;
+				d->ticket_tail++;
+				osp_spin_unlock(&d->mutex);				
+			}
+			else
+			{
+				r = -EBUSY;
+			}
+		}
 
 	} else if (cmd == OSPRDIOCRELEASE) {
 
